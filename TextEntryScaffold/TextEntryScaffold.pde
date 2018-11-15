@@ -33,6 +33,8 @@ void setup()
   noStroke(); //my code doesn't use any strokes.
 }
 
+
+
 //You can modify anything in here. This is just a basic implementation.
 void draw()
 {
@@ -147,8 +149,8 @@ void nextTrial()
     System.out.println("Time taken on this trial: " + (millis()-lastTime)); //output
     System.out.println("Time taken since beginning: " + (millis()-startTime)); //output
     System.out.println("==================");
-    lettersExpectedTotal+=currentPhrase.length();
-    lettersEnteredTotal+=currentTyped.length();
+    lettersExpectedTotal+=currentPhrase.trim().length();
+    lettersEnteredTotal+=currentTyped.trim().length();
     errorsTotal+=computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim());
   }
 
