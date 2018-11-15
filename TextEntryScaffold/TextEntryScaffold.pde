@@ -12,7 +12,7 @@ float lettersExpectedTotal = 0; //a running total of the number of letters expec
 float errorsTotal = 0; //a running total of the number of errors (when hitting next)
 String currentPhrase = ""; //the current target phrase
 String currentTyped = ""; //what the user has typed so far
-final int DPIofYourDeviceScreen = 200; //you will need to look up the DPI or PPI of your device to make sure you get the right scale!!
+final int DPIofYourDeviceScreen = 277; //you will need to look up the DPI or PPI of your device to make sure you get the right scale!!
 //http://en.wikipedia.org/wiki/List_of_displays_by_pixel_density
 final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
 PImage watch;
@@ -28,7 +28,7 @@ void setup()
   Collections.shuffle(Arrays.asList(phrases)); //randomize the order of the phrases
 
   orientation(LANDSCAPE); //can also be PORTRAIT -- sets orientation on android device
-  size(800, 800); //Sets the size of the app. You should modify this to your device's native size. Many phones today are 1080 wide by 1920 tall.
+  size(1280, 720); //Sets the size of the app. You should modify this to your device's native size. Many phones today are 1080 wide by 1920 tall.
   //textFont(createFont("Arial", 24)); //set the font to arial 24
   noStroke(); //my code doesn't use any strokes.
   
@@ -36,6 +36,7 @@ void setup()
   println(height);
   println(sizeOfInputArea);
   println(leftHeight);
+  println("row1y = " + topLeftY);
   initKeyboards();
 }
 
@@ -155,10 +156,10 @@ class SwitchKey extends KeyButton {
 
 // initialize keys *************************************************************
 
-float topLeftX = 300; //(width/2) - sizeOfInputArea; i guess
-float topLeftY = 300; //(height/2) - sizeOfInputArea;
+float topLeftX = 500; //(width/2) - sizeOfInputArea; i guess
+float topLeftY = 225; //(height/2) - sizeOfInputArea;
 
-float bottomRightX = 500;
+float bottomRightX = 775;
 float bottomRightY = 500;
 
 // keyboard left half
@@ -167,7 +168,7 @@ ArrayList<KeyButton> leftKeyboard = new ArrayList<KeyButton>();
 float leftWidth = sizeOfInputArea/6;
 float leftHeight = sizeOfInputArea/5.5;
 
-float rowOneY = topLeftX + (float)sizeOfInputArea * 0.2;
+float rowOneY = topLeftY + (float)sizeOfInputArea * 0.2;
 KeyButton qKey = new KeyButton("q", leftWidth, leftHeight, topLeftX, rowOneY);
 KeyButton wKey = new KeyButton("w", leftWidth, leftHeight, topLeftX + leftWidth, rowOneY);
 KeyButton eKey = new KeyButton("e", leftWidth, leftHeight, topLeftX + 2 * leftWidth, rowOneY);
