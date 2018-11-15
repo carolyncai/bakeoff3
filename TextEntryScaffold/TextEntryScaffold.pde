@@ -17,8 +17,8 @@ final int DPIofYourDeviceScreen = 200; //you will need to look up the DPI or PPI
 final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
 PImage watch;
 
-//Variables for my silly implementation. You can delete this:
-char currentLetter = 'a';
+// which keyboard half am i doing
+boolean isLeftKeyboard = true;
 
 //You can modify anything in here. This is just a basic implementation.
 void setup()
@@ -29,8 +29,239 @@ void setup()
 
   orientation(LANDSCAPE); //can also be PORTRAIT -- sets orientation on android device
   size(800, 800); //Sets the size of the app. You should modify this to your device's native size. Many phones today are 1080 wide by 1920 tall.
-  textFont(createFont("Arial", 24)); //set the font to arial 24
+  //textFont(createFont("Arial", 24)); //set the font to arial 24
   noStroke(); //my code doesn't use any strokes.
+  
+  println(width);
+  println(height);
+  println(sizeOfInputArea);
+  println(leftHeight);
+  initKeyboards();
+}
+
+class KeyButton {
+  String letter;
+  
+  float buttonHeight;
+  float buttonWidth;
+  float locationX;
+  float locationY;
+  
+  int outline = 35;
+  color shader = 217;
+  color shader_held = 152;
+  
+  
+  public KeyButton(String letter, 
+            float buttonWidth, float buttonHeight, 
+            float locationX, float locationY) {
+    this.letter = letter;
+    
+    this.buttonWidth = buttonWidth;
+    this.buttonHeight = buttonHeight;
+    this.locationX = locationX;
+    this.locationY = locationY;
+        
+  }
+
+  public void drawButton () {
+    stroke(outline);
+    
+    if (this.isMouseInKey()) fill(shader_held);
+    else fill(shader);
+    
+    rect(this.locationX, this.locationY, 
+         this.buttonWidth, this.buttonHeight);
+    
+    fill(outline);
+    textFont(createFont("Arial", 18));
+    text(this.letter, 
+         this.locationX + this.buttonWidth/2, 
+         this.locationY + this.buttonHeight/2);
+    
+    if (this.isMouseInKey()) this.drawButtonFloat();
+  }
+  
+  public void drawButtonFloat() {
+    stroke(0,10,255);
+    fill(255);
+
+    rect(this.locationX, this.locationY - this.buttonHeight/2, // offset height
+         this.buttonWidth, this.buttonHeight, 2); // give it a radius
+         
+    fill(0,10,255);
+    text(this.letter, 
+         this.locationX + this.buttonWidth/2, 
+         this.locationY - this.buttonHeight/2 + this.buttonHeight/2);
+  }
+  
+  public boolean isMouseInKey() {
+    return didMouseClick(this.locationX, this.locationY, this.buttonWidth, this.buttonHeight);
+  }
+  
+  public void inputKey() {
+    currentTyped += this.letter;
+  }
+
+}
+
+class SpaceButton extends KeyButton {
+  
+  public SpaceButton(float buttonWidth, float buttonHeight, 
+                         float locationX, float locationY) {
+    super("_", buttonWidth, buttonHeight, locationX, locationY);
+  }
+  
+  @Override
+  public void inputKey() {
+    currentTyped += " ";
+  }
+}
+
+class BackspaceButton extends KeyButton {
+  
+  public BackspaceButton(float buttonWidth, float buttonHeight, 
+                         float locationX, float locationY) {
+    super("<x", buttonWidth, buttonHeight, locationX, locationY);
+    
+    this.shader = color(255,92,78);
+    this.shader_held = color(192,70,58);
+  }
+  
+  @Override
+  // delete the last inputted thing
+  public void inputKey() {
+    currentTyped = currentTyped.substring(0, currentTyped.length()-1);;
+  }
+}
+
+class SwitchKey extends KeyButton {
+  
+  public SwitchKey(String text, 
+                   float buttonWidth, float buttonHeight, 
+                   float locationX, float locationY) {
+    super(text, buttonWidth, buttonHeight, locationX, locationY);
+    
+    this.shader = color(150, 235, 230);
+    this.shader_held = color(105, 195, 190);
+  }
+  
+  @Override
+  // switch the keyboard
+  public void inputKey() {
+    isLeftKeyboard = !isLeftKeyboard;
+  }
+}
+
+// initialize keys *************************************************************
+
+float topLeftX = 300; //(width/2) - sizeOfInputArea; i guess
+float topLeftY = 300; //(height/2) - sizeOfInputArea;
+
+float bottomRightX = 500;
+float bottomRightY = 500;
+
+// keyboard left half
+ArrayList<KeyButton> leftKeyboard = new ArrayList<KeyButton>();
+
+float leftWidth = sizeOfInputArea/6;
+float leftHeight = sizeOfInputArea/5.5;
+
+float rowOneY = topLeftX + (float)sizeOfInputArea * 0.2;
+KeyButton qKey = new KeyButton("q", leftWidth, leftHeight, topLeftX, rowOneY);
+KeyButton wKey = new KeyButton("w", leftWidth, leftHeight, topLeftX + leftWidth, rowOneY);
+KeyButton eKey = new KeyButton("e", leftWidth, leftHeight, topLeftX + 2 * leftWidth, rowOneY);
+KeyButton rKey = new KeyButton("r", leftWidth, leftHeight, topLeftX + 3 * leftWidth, rowOneY);
+KeyButton tKey = new KeyButton("t", leftWidth, leftHeight, topLeftX + 4 * leftWidth, rowOneY);
+
+float leftRowTwoX = topLeftX + leftWidth/2;
+float rowTwoY = rowOneY + leftHeight + 2;
+KeyButton aKey = new KeyButton("a", leftWidth, leftHeight, leftRowTwoX, rowTwoY);
+KeyButton sKey = new KeyButton("s", leftWidth, leftHeight, leftRowTwoX + leftWidth, rowTwoY);
+KeyButton dKey = new KeyButton("d", leftWidth, leftHeight, leftRowTwoX + 2 * leftWidth, rowTwoY);
+KeyButton fKey = new KeyButton("f", leftWidth, leftHeight, leftRowTwoX + 3 * leftWidth, rowTwoY);
+KeyButton gKey = new KeyButton("g", leftWidth, leftHeight, leftRowTwoX + 4 * leftWidth, rowTwoY);
+
+float leftRowThreeX = leftRowTwoX + leftWidth/2;
+float rowThreeY = rowTwoY + leftHeight + 2;
+KeyButton zKey = new KeyButton("z", leftWidth, leftHeight, leftRowThreeX, rowThreeY);
+KeyButton xKey = new KeyButton("x", leftWidth, leftHeight, leftRowThreeX + leftWidth, rowThreeY);
+KeyButton cKey = new KeyButton("c", leftWidth, leftHeight, leftRowThreeX + 2 * leftWidth, rowThreeY);
+KeyButton vKey = new KeyButton("v", leftWidth, leftHeight, leftRowThreeX + 3 * leftWidth, rowThreeY);
+KeyButton bKey = new KeyButton("b", leftWidth, leftHeight, leftRowThreeX + 4 * leftWidth, rowThreeY);
+
+float rowFourY = bottomRightY - leftHeight;
+BackspaceButton leftBackspace = new BackspaceButton(sizeOfInputArea * 0.3, leftHeight, bottomRightX - sizeOfInputArea, rowFourY);
+SpaceButton leftSpace = new SpaceButton(sizeOfInputArea * 0.4, leftHeight, bottomRightX - sizeOfInputArea * 0.7, rowFourY);
+SwitchKey leftSwitch = new SwitchKey(">>>", sizeOfInputArea * 0.3, leftHeight, bottomRightX - sizeOfInputArea * 0.3, rowFourY);
+
+// keyboard right half
+ArrayList<KeyButton> rightKeyboard = new ArrayList<KeyButton>();
+float rightWidth = sizeOfInputArea/5;
+float rightHeight = sizeOfInputArea/5.5;
+
+KeyButton yKey = new KeyButton("y", rightWidth, rightHeight, topLeftX, rowOneY);
+KeyButton uKey = new KeyButton("u", rightWidth, rightHeight, topLeftX + rightWidth, rowOneY);
+KeyButton iKey = new KeyButton("i", rightWidth, rightHeight, topLeftX + 2 * rightWidth, rowOneY);
+KeyButton oKey = new KeyButton("o", rightWidth, rightHeight, topLeftX + 3 * rightWidth, rowOneY);
+KeyButton pKey = new KeyButton("p", rightWidth, rightHeight, topLeftX + 4 * rightWidth, rowOneY);
+
+float rightRowTwoX = topLeftX + rightWidth/2;
+KeyButton hKey = new KeyButton("h", rightWidth, rightHeight, rightRowTwoX, rowTwoY);
+KeyButton jKey = new KeyButton("j", rightWidth, rightHeight, rightRowTwoX + rightWidth, rowTwoY);
+KeyButton kKey = new KeyButton("k", rightWidth, rightHeight, rightRowTwoX + 2 * rightWidth, rowTwoY);
+KeyButton lKey = new KeyButton("l", rightWidth, rightHeight, rightRowTwoX + 3 * rightWidth, rowTwoY);
+
+float rightRowThreeX = rightRowTwoX + rightWidth/2;
+KeyButton nKey = new KeyButton("n", rightWidth, rightHeight, rightRowThreeX, rowThreeY);
+KeyButton mKey = new KeyButton("m", rightWidth, rightHeight, rightRowThreeX + rightWidth, rowThreeY);
+
+BackspaceButton rightBackspace = new BackspaceButton(rightWidth * 1.5 + 14, rightHeight, rightRowThreeX + 2 * rightWidth + 5, rowThreeY);
+SpaceButton rightSpace = new SpaceButton(sizeOfInputArea * 0.6, rightHeight, bottomRightX - sizeOfInputArea * 0.6, rowFourY);
+SwitchKey rightSwitch = new SwitchKey("<<<", sizeOfInputArea * 0.4, rightHeight, bottomRightX - sizeOfInputArea, rowFourY);
+
+// *****************************************************************************
+
+void initKeyboards() {
+  leftKeyboard.add(qKey);
+  leftKeyboard.add(wKey);
+  leftKeyboard.add(eKey);
+  leftKeyboard.add(rKey);
+  leftKeyboard.add(tKey);
+  
+  leftKeyboard.add(aKey);
+  leftKeyboard.add(sKey);
+  leftKeyboard.add(dKey);
+  leftKeyboard.add(fKey);
+  leftKeyboard.add(gKey);
+  
+  leftKeyboard.add(zKey);
+  leftKeyboard.add(xKey);
+  leftKeyboard.add(cKey);
+  leftKeyboard.add(vKey);
+  leftKeyboard.add(bKey);
+  
+  leftKeyboard.add(leftBackspace);
+  leftKeyboard.add(leftSpace);
+  leftKeyboard.add(leftSwitch);
+  
+  rightKeyboard.add(yKey);
+  rightKeyboard.add(uKey);
+  rightKeyboard.add(iKey);
+  rightKeyboard.add(oKey);
+  rightKeyboard.add(pKey);
+  
+  rightKeyboard.add(hKey);
+  rightKeyboard.add(jKey);
+  rightKeyboard.add(kKey);
+  rightKeyboard.add(lKey);
+  
+  rightKeyboard.add(nKey);
+  rightKeyboard.add(mKey);
+  
+  rightKeyboard.add(rightBackspace);
+  rightKeyboard.add(rightSpace);
+  rightKeyboard.add(rightSwitch);
 }
 
 //You can modify anything in here. This is just a basic implementation.
@@ -42,6 +273,19 @@ void draw()
   fill(100);
   rect(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2, sizeOfInputArea, sizeOfInputArea); //input area should be 1" by 1"
 
+  if (isLeftKeyboard) {
+    for (KeyButton k: leftKeyboard) {
+      k.drawButton();
+    }
+  }
+  else {
+    for (KeyButton k: rightKeyboard) {
+      k.drawButton();
+    }
+  }
+  
+  textFont(createFont("Arial", 24)); //set the font to arial 24
+  
   if (finishTime!=0)
   {
     fill(128);
@@ -79,13 +323,13 @@ void draw()
     text("NEXT > ", 650, 650); //draw next label
 
     //my draw code
-    fill(255, 0, 0); //red button
-    rect(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2); //draw left red button
-    fill(0, 255, 0); //green button
-    rect(width/2-sizeOfInputArea/2+sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2); //draw right green button
-    textAlign(CENTER);
-    fill(200);
-    text("" + currentLetter, width/2, height/2-sizeOfInputArea/4); //draw current letter
+    //fill(255, 0, 0); //red button
+    //rect(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2); //draw left red button
+    //fill(0, 255, 0); //green button
+    //rect(width/2-sizeOfInputArea/2+sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2); //draw right green button
+    //textAlign(CENTER);
+    //fill(200);
+    //text("" + currentLetter, width/2, height/2-sizeOfInputArea/4); //draw current letter
   }
 }
 
@@ -98,34 +342,26 @@ boolean didMouseClick(float x, float y, float w, float h) //simple function to d
 void mousePressed()
 {
 
-  if (didMouseClick(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2)) //check if click in left button
-  {
-    currentLetter --;
-    if (currentLetter<'_') //wrap around to z
-      currentLetter = 'z';
-  }
-
-  if (didMouseClick(width/2-sizeOfInputArea/2+sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2)) //check if click in right button
-  {
-    currentLetter ++;
-    if (currentLetter>'z') //wrap back to space (aka underscore)
-      currentLetter = '_';
-  }
-
-  if (didMouseClick(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2, sizeOfInputArea, sizeOfInputArea/2)) //check if click occured in letter area
-  {
-    if (currentLetter=='_') //if underscore, consider that a space bar
-      currentTyped+=" ";
-    else if (currentLetter=='`' & currentTyped.length()>0) //if `, treat that as a delete command
-      currentTyped = currentTyped.substring(0, currentTyped.length()-1);
-    else if (currentLetter!='`') //if not any of the above cases, add the current letter to the typed string
-      currentTyped+=currentLetter;
-  }
-
+  println("mouseX = " + mouseX + "mouseY = " + mouseY);
+  
   //You are allowed to have a next button outside the 1" area
   if (didMouseClick(600, 600, 200, 200)) //check if click is in next button
   {
     nextTrial(); //if so, advance to next trial
+  }
+}
+
+void mouseReleased()
+{
+  if (isLeftKeyboard) {
+    for (KeyButton k: leftKeyboard) {
+      if (k.isMouseInKey()) k.inputKey();
+    }
+  }
+  else {
+    for (KeyButton k: rightKeyboard) {
+      if (k.isMouseInKey()) k.inputKey();
+    }
   }
 }
 
@@ -147,8 +383,8 @@ void nextTrial()
     System.out.println("Time taken on this trial: " + (millis()-lastTime)); //output
     System.out.println("Time taken since beginning: " + (millis()-startTime)); //output
     System.out.println("==================");
-    lettersExpectedTotal+=currentPhrase.length();
-    lettersEnteredTotal+=currentTyped.length();
+    lettersExpectedTotal+=currentPhrase.trim().length();
+    lettersEnteredTotal+=currentTyped.trim().length();
     errorsTotal+=computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim());
   }
 
