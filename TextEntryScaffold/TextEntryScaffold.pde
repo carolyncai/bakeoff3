@@ -135,7 +135,7 @@ class SpaceButton {
   color shader_held = color(32, 163, 255);
   color text = 255;
   
-  float centerX = bottomRightX - sizeOfInputArea;
+  float centerX = bottomRightX;
   float centerY = bottomRightY;
   float radius = 65;
   
@@ -146,15 +146,15 @@ class SpaceButton {
     noStroke();
     if (isHeld) fill(shader_held);
     else fill(shader);
-    arc(centerX, centerY, 2 * radius, 2 * radius, 3 * PI / 2, 2 * PI);
+    arc(centerX, centerY, 2 * radius, 2 * radius, PI, 3*PI/2);
     
     fill(text);
     textFont(createFont("Arial", 15));
-    text("space", this.centerX + 12, this.centerY - 15);
+    text("space", this.centerX - 50, this.centerY - 15);
   }
   
   public boolean inButton(float x, float y) {
-    return (x > centerX && x < centerX + radius && y < centerY && y > centerY - radius
+    return (x < centerX && x > centerX - radius && y < centerY && y > centerY - radius
     && dist(x, y, centerX, centerY) < radius);
   }
 }
@@ -164,7 +164,7 @@ class DeleteButton {
   color shader_held = color(229, 54, 38);
   color text = 255;
   
-  float centerX = bottomRightX;
+  float centerX = bottomRightX - sizeOfInputArea;
   float centerY = bottomRightY;
   float radius = 65;
   
@@ -175,18 +175,16 @@ class DeleteButton {
     noStroke();
     if (isHeld) fill(shader_held);
     else fill(shader);
-    arc(centerX, centerY, 2 * radius, 2 * radius, PI, 3*PI/2);
+    arc(centerX, centerY, 2 * radius, 2 * radius, 3*PI/2, 2*PI);
     
     fill(text);
     textFont(createFont("Arial", 15));
-    text("back", this.centerX - 40, this.centerY - 15);
+    text("back", this.centerX + 12, this.centerY - 15);
   }
   
   public boolean inButton(float x, float y) {
-    //return (x > centerX - radius && x < centerX && y < centerY && y > centerY - radius
-    //&& dist(x, y, centerX, centerY) < radius);
-    
-    return dist(x, y, centerX, centerY) < radius;
+    return (x > centerX && x < centerX + radius && y < centerY && y > centerY - radius
+    && dist(x, y, centerX, centerY) < radius);
   }
 }
 
