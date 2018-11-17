@@ -12,40 +12,270 @@ float lettersExpectedTotal = 0; //a running total of the number of letters expec
 float errorsTotal = 0; //a running total of the number of errors (when hitting next)
 String currentPhrase = ""; //the current target phrase
 String currentTyped = ""; //what the user has typed so far
-final int DPIofYourDeviceScreen = 200; //you will need to look up the DPI or PPI of your device to make sure you get the right scale!!
+final int DPIofYourDeviceScreen = 277; //you will need to look up the DPI or PPI of your device to make sure you get the right scale!!
 //http://en.wikipedia.org/wiki/List_of_displays_by_pixel_density
 final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
 PImage watch;
 
-//Variables for my silly implementation. You can delete this:
+boolean selectingCharacter = false;
 char currentLetter = 'a';
 
 //You can modify anything in here. This is just a basic implementation.
 void setup()
 {
+  // frameRate(60);
+  
   watch = loadImage("watchhand3smaller.png");
   phrases = loadStrings("phrases2.txt"); //load the phrase set into memory
   Collections.shuffle(Arrays.asList(phrases)); //randomize the order of the phrases
 
   orientation(LANDSCAPE); //can also be PORTRAIT -- sets orientation on android device
-  size(800, 800); //Sets the size of the app. You should modify this to your device's native size. Many phones today are 1080 wide by 1920 tall.
+  size(1280, 720); //Sets the size of the app. You should modify this to your device's native size. Many phones today are 1080 wide by 1920 tall.
   textFont(createFont("Arial", 24)); //set the font to arial 24
   noStroke(); //my code doesn't use any strokes.
+  
+  initKeywheel(); // set up the wheel
+  
 }
 
+color watchBackground = (100);
+float topLeftX = 502; //(width/2) - sizeOfInputArea; i guess
+float topLeftY = 223; //(height/2) - sizeOfInputArea;
+float bottomRightX = 779;
+float bottomRightY = 499; 
+float watch_centerX = 640;
+float watch_centerY = 360;
 
+float rOuter = 240 / 2;
+float rInner = 180 / 2;
 
-//You can modify anything in here. This is just a basic implementation.
+class KeyButton {
+  int letterNo; // 0-index it
+  char letter;
+  
+  float startAngle;
+  float midAngle;
+  float endAngle;
+  
+  color shader;
+  color shader_held;
+  color outline;
+  color outline_held;
+  
+  float centerX;
+  float centerY;
+  
+  public KeyButton(int letterNo) {
+    this.letter = (char)(97 + letterNo);
+    
+    this.startAngle = (360/26.0) * letterNo - 90;
+    this.endAngle = (360/26.0) * (letterNo + 1) - 90;
+    this.midAngle = (startAngle + endAngle) / 2;
+    
+    colorMode(HSB, 360, 100, 100); // change it to hsv
+    int hue = (int) midAngle;
+    this.shader = color(hue, 30, 100);
+    this.shader_held = color(hue, 70, 100);
+    this.outline = color(hue, 40, 20);
+    this.outline_held = color(hue, 100, 50);
+    colorMode(RGB, 255, 255, 255);
+    
+    this.centerX = watch_centerX + ((rOuter + rInner) / 2) * cos(radians(midAngle));
+    this.centerY = watch_centerY + ((rOuter + rInner) / 2) * sin(radians(midAngle));
+        
+  }
+
+  public void drawButton (boolean isCurrentLetter) {
+    if (selectingCharacter && isCurrentLetter) {
+      float rad_offset = 8; // make it a bit bigger
+      stroke(outline_held);
+      // outer circle edge & borders
+      fill(shader_held);
+      arc(watch_centerX, watch_centerY, 
+          2 * (rOuter + rad_offset), 2 * (rOuter + rad_offset), 
+          radians(startAngle), radians(endAngle), PIE);
+      // inner circle edge
+      noFill();
+      arc(watch_centerX, watch_centerY, 2 * rInner, 2 * rInner, radians(startAngle), radians(endAngle));
+      // letter
+      textFont(createFont("Arial", 14));
+      fill(outline_held);
+      text(("" + this.letter), this.centerX - 3, this.centerY + 2); 
+    }
+    else {
+      stroke(outline);
+      // outer circle edge & borders
+      fill(shader);
+      arc(watch_centerX, watch_centerY, 2 * rOuter, 2 * rOuter, radians(startAngle), radians(endAngle), PIE);
+      // inner circle edge
+      noFill();
+      arc(watch_centerX, watch_centerY, 2 * rInner, 2 * rInner, radians(startAngle), radians(endAngle));
+      // letter
+      fill(outline);
+      textFont(createFont("Arial", 14));
+      text(("" + this.letter), this.centerX - 3, this.centerY + 2); // offset it a bit so text looks centered
+    }
+  }
+
+}
+
+// curved corner buttons
+class SpaceButton {
+  color shader = color(107, 194, 255);
+  color shader_held = color(32, 163, 255);
+  color text = 255;
+  
+  float centerX = bottomRightX - sizeOfInputArea;
+  float centerY = bottomRightY;
+  float radius = 65;
+  
+  public SpaceButton() {
+  }
+  
+  public void drawButton(boolean isHeld) {
+    noStroke();
+    if (isHeld) fill(shader_held);
+    else fill(shader);
+    arc(centerX, centerY, 2 * radius, 2 * radius, 3 * PI / 2, 2 * PI);
+    
+    fill(text);
+    textFont(createFont("Arial", 15));
+    text("space", this.centerX + 12, this.centerY - 15);
+  }
+  
+  public boolean inButton(float x, float y) {
+    return (x > centerX && x < centerX + radius && y < centerY && y > centerY - radius
+    && dist(x, y, centerX, centerY) < radius);
+  }
+}
+
+class DeleteButton {
+  color shader = color(255, 112, 100);
+  color shader_held = color(229, 54, 38);
+  color text = 255;
+  
+  float centerX = bottomRightX;
+  float centerY = bottomRightY;
+  float radius = 65;
+  
+  public DeleteButton() {
+  }
+  
+  public void drawButton(boolean isHeld) {
+    noStroke();
+    if (isHeld) fill(shader_held);
+    else fill(shader);
+    arc(centerX, centerY, 2 * radius, 2 * radius, PI, 3*PI/2);
+    
+    fill(text);
+    textFont(createFont("Arial", 15));
+    text("back", this.centerX - 40, this.centerY - 15);
+  }
+  
+  public boolean inButton(float x, float y) {
+    //return (x > centerX - radius && x < centerX && y < centerY && y > centerY - radius
+    //&& dist(x, y, centerX, centerY) < radius);
+    
+    return dist(x, y, centerX, centerY) < radius;
+  }
+}
+
+ArrayList<KeyButton> keywheel = new ArrayList<KeyButton>();
+SpaceButton space = new SpaceButton();
+DeleteButton delete = new DeleteButton();
+void initKeywheel() {
+  for(int i = 0; i < 26; i++) {
+    // KeyButton k = new KeyButton(i);
+    // println("key " + k.letter + " centerX = " + k.centerX + " centerY = " + k.centerY);
+    keywheel.add(new KeyButton(i));
+  }
+}
+
+char findClosestChar() {
+  float closestDist = 99999;
+  char closestChar = ',';
+  for (KeyButton k : keywheel) {
+    float distToKey = dist(mouseX, mouseY, k.centerX, k.centerY);
+    if (distToKey < closestDist) {
+      closestDist = distToKey;
+      closestChar = k.letter;
+    }
+  }
+  currentLetter = closestChar; // set this here
+  return closestChar;
+}
+
+// my draw code
+void drawInterface() {
+  // draw keywheel
+  if (selectingCharacter) {
+    char closestChar = findClosestChar();
+    for (KeyButton k : keywheel) {
+      if (closestChar == k.letter) k.drawButton(true);
+      else k.drawButton(false);
+    }
+    // draw the letter
+    fill(255);
+    textFont(createFont("Arial", 50));
+    text("" + currentLetter, topLeftX + 10, topLeftY + 45);
+    text("" + currentLetter, bottomRightX - 40, topLeftY + 45);
+    
+  }
+  else {
+    for (KeyButton k : keywheel) {
+      k.drawButton(false);
+    }
+  }
+  
+  // fill in center of wheel
+  fill(watchBackground);
+  noStroke();
+  ellipse(watch_centerX, watch_centerY, 2 * rInner, 2 * rInner);
+  
+  // draw space & delete
+  space.drawButton(!selectingCharacter && space.inButton(mouseX, mouseY));
+  delete.drawButton(!selectingCharacter && delete.inButton(mouseX, mouseY));
+}
+
+void drawFinished() {
+  fill(0);
+  int textX = 300;
+  int textY = 300;
+  textFont(createFont("Arial", 24));
+  text("==================", textX, textY);
+  text("Trials complete!", textX, textY + 30); //output
+  text("Total time taken: " + (finishTime - startTime), textX, textY + 2 * 30); //output
+  text("Total letters entered: " + lettersEnteredTotal, textX, textY + 3 * 30); //output
+  text("Total letters expected: " + lettersExpectedTotal, textX, textY + 4 * 30); //output
+  text("Total errors entered: " + errorsTotal, textX, textY + 5 * 30); //output
+
+  float wpm = (lettersEnteredTotal/5.0f)/((finishTime - startTime)/60000f); //FYI - 60K is number of milliseconds in minute
+  text("Raw WPM: " + wpm, textX, textY + 7 * 30); //output
+
+  float freebieErrors = lettersExpectedTotal*.05; //no penalty if errors are under 5% of chars
+
+  text("Freebie errors: " + freebieErrors, textX, textY + 9 * 30); //output
+  float penalty = max(errorsTotal-freebieErrors, 0) * .5f;
+
+  text("Penalty: " + penalty, textX, textY + 10 * 30);
+  text("WPM w/ penalty: " + (wpm-penalty), textX, textY + 11 * 30); //yes, minus, becuase higher WPM is better
+  text("==================", textX, textY + 12 * 30);
+}
+
 void draw()
 {
   background(255); //clear background
 
+  noStroke();
   drawWatch();
-  fill(100);
+  fill(watchBackground);
   rect(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2, sizeOfInputArea, sizeOfInputArea); //input area should be 1" by 1"
 
+  drawInterface();
+  
   if (finishTime!=0)
   {
+    drawFinished();
     fill(128);
     textAlign(CENTER);
     text("Finished", 280, 150);
@@ -81,13 +311,13 @@ void draw()
     text("NEXT > ", 650, 650); //draw next label
 
     //my draw code
-    fill(255, 0, 0); //red button
-    rect(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2); //draw left red button
-    fill(0, 255, 0); //green button
-    rect(width/2-sizeOfInputArea/2+sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2); //draw right green button
-    textAlign(CENTER);
-    fill(200);
-    text("" + currentLetter, width/2, height/2-sizeOfInputArea/4); //draw current letter
+    //fill(255, 0, 0); //red button
+    //rect(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2); //draw left red button
+    //fill(0, 255, 0); //green button
+    //rect(width/2-sizeOfInputArea/2+sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2); //draw right green button
+    //textAlign(CENTER);
+    //fill(200);
+    //text("" + currentLetter, width/2, height/2-sizeOfInputArea/4); //draw current letter
   }
 }
 
@@ -100,34 +330,37 @@ boolean didMouseClick(float x, float y, float w, float h) //simple function to d
 void mousePressed()
 {
 
-  if (didMouseClick(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2)) //check if click in left button
-  {
-    currentLetter --;
-    if (currentLetter<'_') //wrap around to z
-      currentLetter = 'z';
-  }
-
-  if (didMouseClick(width/2-sizeOfInputArea/2+sizeOfInputArea/2, height/2-sizeOfInputArea/2+sizeOfInputArea/2, sizeOfInputArea/2, sizeOfInputArea/2)) //check if click in right button
-  {
-    currentLetter ++;
-    if (currentLetter>'z') //wrap back to space (aka underscore)
-      currentLetter = '_';
-  }
-
-  if (didMouseClick(width/2-sizeOfInputArea/2, height/2-sizeOfInputArea/2, sizeOfInputArea, sizeOfInputArea/2)) //check if click occured in letter area
-  {
-    if (currentLetter=='_') //if underscore, consider that a space bar
-      currentTyped+=" ";
-    else if (currentLetter=='`' & currentTyped.length()>0) //if `, treat that as a delete command
-      currentTyped = currentTyped.substring(0, currentTyped.length()-1);
-    else if (currentLetter!='`') //if not any of the above cases, add the current letter to the typed string
-      currentTyped+=currentLetter;
-  }
-
+  
   //You are allowed to have a next button outside the 1" area
   if (didMouseClick(600, 600, 200, 200)) //check if click is in next button
   {
+    selectingCharacter = false;
     nextTrial(); //if so, advance to next trial
+  }
+  
+  //println("mouseX = " + mouseX + " mouseY = " + mouseY);
+  else if (space.inButton(mouseX, mouseY) || delete.inButton(mouseX, mouseY)) {
+    selectingCharacter = false;
+  }
+  else if (startTime != 0 && didMouseClick(topLeftX, topLeftY, sizeOfInputArea, sizeOfInputArea)) 
+    selectingCharacter = true; 
+
+}
+
+void mouseReleased() 
+{ 
+  if (!selectingCharacter) {
+    if (space.inButton(mouseX, mouseY)) { // input space
+      currentTyped += " ";
+    }
+    else if (delete.inButton(mouseX, mouseY)) { // delete character
+      currentTyped = currentTyped.substring(0, currentTyped.length()-1);
+    }
+  }
+  // else, input the current letter
+  else {
+    currentTyped += currentLetter;
+    selectingCharacter = false;
   }
 }
 
