@@ -80,7 +80,7 @@ class KeyButton {
          this.locationX + this.buttonWidth/2, 
          this.locationY + this.buttonHeight/2);
     
-    if (this.isMouseInKey()) this.drawButtonFloat();
+    //if (this.isMouseInKey()) this.drawButtonFloat();
   }
   
   public void drawButtonFloat() {
@@ -265,6 +265,31 @@ void initKeyboards() {
   rightKeyboard.add(rightSwitch);
 }
 
+void drawFinished() {
+  fill(0);
+  int textX = 300;
+  int textY = 300;
+  textFont(createFont("Arial", 24));
+  text("==================", textX, textY);
+  text("Trials complete!", textX, textY + 30); //output
+  text("Total time taken: " + (finishTime - startTime), textX, textY + 2 * 30); //output
+  text("Total letters entered: " + lettersEnteredTotal, textX, textY + 3 * 30); //output
+  text("Total letters expected: " + lettersExpectedTotal, textX, textY + 4 * 30); //output
+  text("Total errors entered: " + errorsTotal, textX, textY + 5 * 30); //output
+
+  float wpm = (lettersEnteredTotal/5.0f)/((finishTime - startTime)/60000f); //FYI - 60K is number of milliseconds in minute
+  text("Raw WPM: " + wpm, textX, textY + 7 * 30); //output
+
+  float freebieErrors = lettersExpectedTotal*.05; //no penalty if errors are under 5% of chars
+
+  text("Freebie errors: " + freebieErrors, textX, textY + 9 * 30); //output
+  float penalty = max(errorsTotal-freebieErrors, 0) * .5f;
+
+  text("Penalty: " + penalty, textX, textY + 10 * 30);
+  text("WPM w/ penalty: " + (wpm-penalty), textX, textY + 11 * 30); //yes, minus, becuase higher WPM is better
+  text("==================", textX, textY + 12 * 30);
+}
+
 //You can modify anything in here. This is just a basic implementation.
 void draw()
 {
@@ -292,6 +317,7 @@ void draw()
     fill(128);
     textAlign(CENTER);
     text("Finished", 280, 150);
+    drawFinished();
     return;
   }
 
