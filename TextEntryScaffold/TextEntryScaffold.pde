@@ -1,5 +1,7 @@
 import java.util.Arrays;
 import java.util.Collections;
+import java.awt.Toolkit;
+
 
 String[] phrases; //contains all of the phrases
 int totalTrialNum = 2; //the total number of phrases to be tested - set this low for testing. Might be ~10 for the real bakeoff!
@@ -357,11 +359,13 @@ void mouseReleased()
   if (isLeftKeyboard) {
     for (KeyButton k: leftKeyboard) {
       if (k.isMouseInKey()) k.inputKey();
+      Toolkit.getDefaultToolkit().beep();
     }
   }
   else {
     for (KeyButton k: rightKeyboard) {
       if (k.isMouseInKey()) k.inputKey();
+      Toolkit.getDefaultToolkit().beep();
     }
   }
 }
