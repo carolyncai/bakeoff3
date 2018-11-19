@@ -250,6 +250,20 @@ public class AccelerometerManager {
 // **************** ACTUAL BAKEOFF CODE BEGINS HERE *********************
 // **********************************************************************
 
+
+int pred1x = 500;
+int pred1y = 220;
+int pred1_width = 90;
+int pred1_height = 35;
+int pred2x = 595;
+int pred2y = 220;
+int pred2_width = 90;
+int pred2_height = 35;
+int pred3x = 690;
+int pred3y = 220;
+int pred3_width = 90;
+int pred3_height = 35;
+String[] common_words;
 String[] phrases; //contains all of the phrases
 int totalTrialNum = 2; //the total number of phrases to be tested - set this low for testing. Might be ~10 for the real bakeoff!
 int currTrialNum = 0; // the current trial number (indexes into trials array above)
@@ -261,6 +275,7 @@ float lettersExpectedTotal = 0; //a running total of the number of letters expec
 float errorsTotal = 0; //a running total of the number of errors (when hitting next)
 String currentPhrase = ""; //the current target phrase
 String currentTyped = ""; //what the user has typed so far
+String currentWord = "";
 final int DPIofYourDeviceScreen = 277; //you will need to look up the DPI or PPI of your device to make sure you get the right scale!!
 //http://en.wikipedia.org/wiki/List_of_displays_by_pixel_density
 final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
@@ -280,7 +295,7 @@ float az = 0;
 void setup()
 {
   accel = new AccelerometerManager(this);
-  
+  common_words = loadStrings("common_words.txt");
   frameRate(60);
   watch = loadImage("watchhand3smaller.png");
   phrases = loadStrings("phrases2.txt"); //load the phrase set into memory
@@ -384,6 +399,7 @@ class KeyButton {
   
   public void inputKey() {
     currentTyped += this.letter;
+    currentWord += this.letter;
   }
 
 }
@@ -401,6 +417,7 @@ class SpaceButton extends KeyButton {
   @Override
   public void inputKey() {
     currentTyped += " ";
+    currentWord += " ";
   }
 }
 
@@ -420,7 +437,9 @@ class BackspaceButton extends KeyButton {
   @Override
   // delete the last inputted thing
   public void inputKey() {
-    currentTyped = currentTyped.substring(0, currentTyped.length()-1);;
+    currentTyped = currentTyped.substring(0, currentTyped.length()-1);
+    if (currentWord.length()>0)
+      currentWord = currentWord.substring(0, currentWord.length() -1);
   }
 }
 
@@ -581,15 +600,15 @@ void drawFinished() {
   text("==================", textX, textY + 12 * 30);
 }
 
-//void drawAccel() {
-//  fill(100);
-//  text("is acceleration supported? " + accel.isSupported(), 
-//       900, 500);
-//  text("x: " + nf(ax, 1, 2) + "\n" + 
-//       "y: " + nf(ay, 1, 2) + "\n" + 
-//       "z: " + nf(az, 1, 2), 
-//       900, 530);
-//}
+void drawAccel() {
+  fill(100);
+  text("is acceleration supported? " + accel.isSupported(), 
+       900, 500);
+  text("x: " + nf(ax, 1, 2) + "\n" + 
+       "y: " + nf(ay, 1, 2) + "\n" + 
+       "z: " + nf(az, 1, 2), 
+       900, 530);
+}
 
 //You can modify anything in here. This is just a basic implementation.
 void draw()
@@ -645,7 +664,25 @@ void draw()
     fill(100);
     text(" Target:  " + currentPhrase, 300, 80); //draw the target string
     text("Entered:  " + currentTyped +"|", 300, 120); //draw what the user has entered thus far 
-    
+    //////////////////////////////
+    if (currentWord.contains(" "))
+    {
+      currentWord = "";
+    }
+    String[] a = predictions(currentWord, 9);
+    textSize(20);
+    noFill();
+    stroke(255);
+    rect(pred1x, pred1y, pred1_width, pred1_height);
+    rect(pred2x, pred2y, pred2_width, pred2_height);
+    rect(pred3x, pred3y, pred3_width, pred3_height);
+
+    fill(255);
+    text(a[0], pred1x, pred1y, pred1_width, pred1_height);
+    if (a.length > 1 && a[1] != null)
+      text(a[1], pred2x, pred2y, pred2_width, pred2_height);
+    if (a.length > 2)
+      text(a[2], pred3x, pred3y, pred3_width, pred3_height); 
     //draw very basic next button
     fill(255, 0, 0);
     rect(600, 600, 200, 200); //draw next button
@@ -684,6 +721,35 @@ void mousePressed()
 
 void mouseReleased()
 {
+  if (didMouseClick(pred1x, pred1y, pred1_width, pred1_height)) //check if click in left button
+        {
+          String[] a = predictions(currentWord, 9);
+          if (a.length > 0)
+             if (a[0] != null){
+            currentTyped+=a[0].substring(currentWord.length(), a[0].length());
+          //currentLetter='_';
+          currentWord = currentWord + " ";
+          currentTyped+=" ";
+        }
+      }
+   if (didMouseClick(pred2x, pred2y, pred2_width, pred2_height)) //check if click in left button
+      {
+          String[] a = predictions(currentWord, 9);
+          if (a.length > 1 && a[1] != null)
+            currentTyped+=a[1].substring(currentWord.length(), a[1].length());
+          //currentLetter='_';
+          currentWord = currentWord + " ";
+          currentTyped+=" ";
+      }
+   if (didMouseClick(pred3x, pred3y, pred3_width, pred3_height)) //check if click in left button
+      {
+          String[] a = predictions(currentWord, 9);
+          if (a.length > 2 && a[2] != null)
+            currentTyped+=a[2].substring(currentWord.length(), a[2].length());
+          //currentLetter='_';
+          currentWord = currentWord + " ";
+          currentTyped+=" ";
+      }
   if (isLeftKeyboard) {
     for (KeyButton k: leftKeyboard) {
       if (k.isMouseInKey()) k.inputKey();
@@ -789,4 +855,41 @@ int computeLevenshteinDistance(String phrase1, String phrase2) //this computers 
       distance[i][j] = min(min(distance[i - 1][j] + 1, distance[i][j - 1] + 1), distance[i - 1][j - 1] + ((phrase1.charAt(i - 1) == phrase2.charAt(j - 1)) ? 0 : 1));
 
   return distance[phrase1.length()][phrase2.length()];
+}
+
+
+String[] predictions(String word, int num){
+  String[] empty = new String[1];
+  empty[0] = "";
+  String[] answer = new String[10];
+  //String[] actual_answer = new String[10];
+  int index = 0;
+  
+  for (int i = 0; i < common_words.length; i ++)
+  {
+
+    if (common_words[i].length() > word.length())
+    {
+      if (common_words[i].substring(0,word.length()).equals(word))
+      {
+        answer[index] = common_words[i];
+        index += 1;
+        if (index == num)
+        {
+          //System.out.println(Arrays.toString(answer));
+            //System.out.println(Arrays.toString(actual_answer));
+            //answer = new String[10];
+            return answer;
+          
+        }
+      }
+    }
+  }
+  //System.out.println(Arrays.toString(answer));
+  if (answer[0] != null)
+  {
+    return answer;
+  }
+  return empty;
+  
 }
