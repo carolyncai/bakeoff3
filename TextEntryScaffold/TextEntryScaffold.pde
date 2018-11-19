@@ -681,7 +681,7 @@ void draw()
     text(a[0], pred1x, pred1y, pred1_width, pred1_height);
     if (a.length > 1 && a[1] != null)
       text(a[1], pred2x, pred2y, pred2_width, pred2_height);
-    if (a.length > 2)
+    if (a.length > 2 && a[2] != null)
       text(a[2], pred3x, pred3y, pred3_width, pred3_height); 
     //draw very basic next button
     fill(255, 0, 0);
