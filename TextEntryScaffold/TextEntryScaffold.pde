@@ -1,5 +1,7 @@
 import java.util.Arrays;
 import java.util.Collections;
+import java.awt.Toolkit;
+
 
 // ** copypaste accelerometerManager here // ctrl+F "ACTUAL BAKEOFF CODE" for bakeoff code.
 import processing.core.PApplet;
@@ -703,6 +705,7 @@ void mouseReleased()
           //currentLetter='_';
           currentWord = currentWord + " ";
           currentTyped+=" ";
+          Toolkit.getDefaultToolkit().beep();
         }
       }
    if (didMouseClick(pred2x, pred2y, pred2_width, pred2_height)) //check if click in left button
@@ -713,6 +716,8 @@ void mouseReleased()
           //currentLetter='_';
           currentWord = currentWord + " ";
           currentTyped+=" ";
+          Toolkit.getDefaultToolkit().beep();
+
       }
    if (didMouseClick(pred3x, pred3y, pred3_width, pred3_height)) //check if click in left button
       {
@@ -722,15 +727,20 @@ void mouseReleased()
           //currentLetter='_';
           currentWord = currentWord + " ";
           currentTyped+=" ";
+          Toolkit.getDefaultToolkit().beep();
       }
   if (isLeftKeyboard) {
     for (KeyButton k: leftKeyboard) {
       if (k.isMouseInKey()) k.inputKey();
+      Toolkit.getDefaultToolkit().beep();
+
     }
   }
   else {
     for (KeyButton k: rightKeyboard) {
       if (k.isMouseInKey()) k.inputKey();
+      Toolkit.getDefaultToolkit().beep();
+
     }
   }
   mouseDown = false;
