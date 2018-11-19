@@ -600,15 +600,15 @@ void drawFinished() {
   text("==================", textX, textY + 12 * 30);
 }
 
-void drawAccel() {
-  fill(100);
-  text("is acceleration supported? " + accel.isSupported(), 
-       900, 500);
-  text("x: " + nf(ax, 1, 2) + "\n" + 
-       "y: " + nf(ay, 1, 2) + "\n" + 
-       "z: " + nf(az, 1, 2), 
-       900, 530);
-}
+//void drawAccel() {
+//  fill(100);
+//  text("is acceleration supported? " + accel.isSupported(), 
+//       900, 500);
+//  text("x: " + nf(ax, 1, 2) + "\n" + 
+//       "y: " + nf(ay, 1, 2) + "\n" + 
+//       "z: " + nf(az, 1, 2), 
+//       900, 530);
+//}
 
 //You can modify anything in here. This is just a basic implementation.
 void draw()
