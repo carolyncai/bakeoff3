@@ -1,6 +1,11 @@
 import java.util.Arrays;
 import java.util.Collections;
 
+// vibrator (lol)
+import android.content.Context;    // both imports required for vibration
+import android.os.Vibrator;
+import android.os.VibrationEffect;
+
 // ** copypaste accelerometerManager here // ctrl+F "ACTUAL BAKEOFF CODE" for bakeoff code.
 import processing.core.PApplet;
 
@@ -290,10 +295,15 @@ float ax = 0;
 float ay = 0;
 float az = 0;
 
+Context context;
+Vibrator vibe;
+
 //You can modify anything in here. This is just a basic implementation.
 void setup()
 {
   accel = new AccelerometerManager(this);
+  context = getActivity();
+  vibe = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
   //common_words = loadStrings("common_words.txt");
   assert(common_words != null);
   frameRate(60);
@@ -360,9 +370,7 @@ class KeyButton {
 
   public void drawButton () {
     stroke(outline);
-    
-    if (this.isMouseInKey()) fill(shader_held);
-    else fill(shader);
+    fill(shader);
     
     rect(this.locationX, this.locationY, 
          this.buttonWidth, this.buttonHeight);
@@ -389,9 +397,7 @@ class KeyButton {
   }
   
   public boolean isMouseInKey() {
-    return 
-    //mouseDown && 
-    didMouseClick(this.locationX, this.locationY, this.buttonWidth, this.buttonHeight);
+    return mouseDown && didMouseClick(this.locationX, this.locationY, this.buttonWidth, this.buttonHeight);
   }
   
   public void inputKey() {
@@ -473,7 +479,7 @@ float bottomRightY = 500;
 ArrayList<KeyButton> leftKeyboard = new ArrayList<KeyButton>();
 
 float leftWidth = sizeOfInputArea/6;
-float leftHeight = sizeOfInputArea/5.5;
+float leftHeight = sizeOfInputArea/5;
 
 float rowOneY = topLeftY + (float)sizeOfInputArea * 0.2;
 KeyButton qKey = new KeyButton("q", leftWidth, leftHeight, topLeftX, rowOneY);
@@ -483,7 +489,7 @@ KeyButton rKey = new KeyButton("r", leftWidth, leftHeight, topLeftX + 3 * leftWi
 KeyButton tKey = new KeyButton("t", leftWidth, leftHeight, topLeftX + 4 * leftWidth, rowOneY);
 
 float leftRowTwoX = topLeftX + leftWidth/2;
-float rowTwoY = rowOneY + leftHeight + 2;
+float rowTwoY = rowOneY + leftHeight + 4;
 KeyButton aKey = new KeyButton("a", leftWidth, leftHeight, leftRowTwoX, rowTwoY);
 KeyButton sKey = new KeyButton("s", leftWidth, leftHeight, leftRowTwoX + leftWidth, rowTwoY);
 KeyButton dKey = new KeyButton("d", leftWidth, leftHeight, leftRowTwoX + 2 * leftWidth, rowTwoY);
@@ -491,22 +497,22 @@ KeyButton fKey = new KeyButton("f", leftWidth, leftHeight, leftRowTwoX + 3 * lef
 KeyButton gKey = new KeyButton("g", leftWidth, leftHeight, leftRowTwoX + 4 * leftWidth, rowTwoY);
 
 float leftRowThreeX = leftRowTwoX + leftWidth/2;
-float rowThreeY = rowTwoY + leftHeight + 2;
+float rowThreeY = rowTwoY + leftHeight + 4;
 KeyButton zKey = new KeyButton("z", leftWidth, leftHeight, leftRowThreeX, rowThreeY);
 KeyButton xKey = new KeyButton("x", leftWidth, leftHeight, leftRowThreeX + leftWidth, rowThreeY);
 KeyButton cKey = new KeyButton("c", leftWidth, leftHeight, leftRowThreeX + 2 * leftWidth, rowThreeY);
 KeyButton vKey = new KeyButton("v", leftWidth, leftHeight, leftRowThreeX + 3 * leftWidth, rowThreeY);
 KeyButton bKey = new KeyButton("b", leftWidth, leftHeight, leftRowThreeX + 4 * leftWidth, rowThreeY);
 
-float rowFourY = bottomRightY - leftHeight;
-BackspaceButton leftBackspace = new BackspaceButton(sizeOfInputArea * 0.3, leftHeight, bottomRightX - sizeOfInputArea * 0.3, rowFourY);
-SpaceButton leftSpace = new SpaceButton(sizeOfInputArea * 0.7, leftHeight, bottomRightX - sizeOfInputArea, rowFourY);
+float rowFourY = bottomRightY - leftHeight * .7;
+BackspaceButton leftBackspace = new BackspaceButton(sizeOfInputArea * 0.3, leftHeight * .7, bottomRightX - sizeOfInputArea * 0.3, rowFourY);
+SpaceButton leftSpace = new SpaceButton(sizeOfInputArea * 0.7, leftHeight * .7, bottomRightX - sizeOfInputArea, rowFourY);
 //SwitchKey leftSwitch = new SwitchKey(">>>", sizeOfInputArea * 0.3, leftHeight, bottomRightX - sizeOfInputArea * 0.3, rowFourY);
 
 // keyboard right half
 ArrayList<KeyButton> rightKeyboard = new ArrayList<KeyButton>();
 float rightWidth = sizeOfInputArea/5;
-float rightHeight = sizeOfInputArea/5.5;
+float rightHeight = sizeOfInputArea/5;
 
 KeyButton yKey = new KeyButton("y", rightWidth, rightHeight, topLeftX, rowOneY);
 KeyButton uKey = new KeyButton("u", rightWidth, rightHeight, topLeftX + rightWidth, rowOneY);
@@ -524,8 +530,8 @@ float rightRowThreeX = rightRowTwoX + rightWidth/2;
 KeyButton nKey = new KeyButton("n", rightWidth, rightHeight, rightRowThreeX, rowThreeY);
 KeyButton mKey = new KeyButton("m", rightWidth, rightHeight, rightRowThreeX + rightWidth, rowThreeY);
 
-BackspaceButton rightBackspace = new BackspaceButton(sizeOfInputArea * 0.3, rightHeight, bottomRightX - sizeOfInputArea * 0.3, rowFourY);
-SpaceButton rightSpace = new SpaceButton(sizeOfInputArea * 0.7, rightHeight, bottomRightX - sizeOfInputArea, rowFourY);
+BackspaceButton rightBackspace = new BackspaceButton(sizeOfInputArea * 0.3, rightHeight * .7, bottomRightX - sizeOfInputArea * 0.3, rowFourY);
+SpaceButton rightSpace = new SpaceButton(sizeOfInputArea * 0.7, rightHeight * .7, bottomRightX - sizeOfInputArea, rowFourY);
 //SwitchKey rightSwitch = new SwitchKey("<<<", sizeOfInputArea * 0.4, rightHeight, bottomRightX - sizeOfInputArea, rowFourY);
 
 // *****************************************************************************
@@ -687,6 +693,7 @@ boolean didMouseClick(float x, float y, float w, float h) //simple function to d
 void mousePressed()
 {
   mouseDown = true;
+  vibe.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
   println("mouseX = " + mouseX + "mouseY = " + mouseY);
   
   //You are allowed to have a next button outside the 1" area
