@@ -19,10 +19,13 @@ PImage watch;
 
 // which keyboard half am i doing
 boolean isLeftKeyboard = true;
+// uhh lol
+boolean mouseDown = false;
 
 //You can modify anything in here. This is just a basic implementation.
 void setup()
 {
+  frameRate(60);
   watch = loadImage("watchhand3smaller.png");
   phrases = loadStrings("phrases2.txt"); //load the phrase set into memory
   Collections.shuffle(Arrays.asList(phrases)); //randomize the order of the phrases
@@ -68,8 +71,12 @@ class KeyButton {
   public void drawButton () {
     stroke(outline);
     
-    if (this.isMouseInKey()) fill(shader_held);
-    else fill(shader);
+    //if (this.isMouseInKey()) fill(shader_held);
+    //else fill(shader);
+    
+    // it's laggy if you color it differently when button is held...
+    // hmm
+    fill(shader);
     
     rect(this.locationX, this.locationY, 
          this.buttonWidth, this.buttonHeight);
@@ -97,7 +104,7 @@ class KeyButton {
   }
   
   public boolean isMouseInKey() {
-    return didMouseClick(this.locationX, this.locationY, this.buttonWidth, this.buttonHeight);
+    return mouseDown && didMouseClick(this.locationX, this.locationY, this.buttonWidth, this.buttonHeight);
   }
   
   public void inputKey() {
@@ -112,6 +119,9 @@ class SpaceButton extends KeyButton {
                          float locationX, float locationY) {
     super("_", buttonWidth, buttonHeight, locationX, locationY);
   }
+  
+  @Override
+  public void drawButtonFloat() {}
   
   @Override
   public void inputKey() {
@@ -130,6 +140,9 @@ class BackspaceButton extends KeyButton {
   }
   
   @Override
+  public void drawButtonFloat() {}
+  
+  @Override
   // delete the last inputted thing
   public void inputKey() {
     currentTyped = currentTyped.substring(0, currentTyped.length()-1);;
@@ -146,6 +159,9 @@ class SwitchKey extends KeyButton {
     this.shader = color(150, 235, 230);
     this.shader_held = color(105, 195, 190);
   }
+  
+  @Override
+  public void drawButtonFloat() {}
   
   @Override
   // switch the keyboard
@@ -337,11 +353,11 @@ void draw()
   {
     //feel free to change the size and position of the target/entered phrases and next button 
     textAlign(LEFT); //align the text left
-    fill(128);
-    text("Phrase " + (currTrialNum+1) + " of " + totalTrialNum, 70, 50); //draw the trial count
-    fill(128);
-    text("Target:   " + currentPhrase, 70, 100); //draw the target string
-    text("Entered:  " + currentTyped +"|", 70, 140); //draw what the user has entered thus far 
+    fill(100);
+    text("Phrase " + (currTrialNum+1) + " of " + totalTrialNum, 300, 50); //draw the trial count
+    fill(100);
+    text(" Target:  " + currentPhrase, 300, 80); //draw the target string
+    text("Entered:  " + currentTyped +"|", 300, 120); //draw what the user has entered thus far 
     
     //draw very basic next button
     fill(255, 0, 0);
@@ -369,6 +385,7 @@ boolean didMouseClick(float x, float y, float w, float h) //simple function to d
 void mousePressed()
 {
 
+  mouseDown = true;
   println("mouseX = " + mouseX + "mouseY = " + mouseY);
   
   //You are allowed to have a next button outside the 1" area
@@ -390,6 +407,7 @@ void mouseReleased()
       if (k.isMouseInKey()) k.inputKey();
     }
   }
+  mouseDown = false;
 }
 
 
